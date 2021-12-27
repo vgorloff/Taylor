@@ -46,10 +46,10 @@ public class Request {
         self.parseHeaderData(headerData)
     }
     
-    private func parseHeaderData(d: NSData){
+    private func parseHeaderData(_ d: NSData){
         
         //TODO: Parse data line by line, so if body content is not UTF8 encoded, this doesn't crash
-        let string = String(data: d, encoding: NSUTF8StringEncoding)
+        let string = String(data: d as Data, encoding: .utf8)
         var http: [String] = string!.componentsSeparatedByString("\r\n") as [String]
         
         //Parse method
@@ -150,9 +150,9 @@ public class Request {
         }
     }
     
-    func parseBodyData(d: NSData?){
+    func parseBodyData(_ d: NSData?){
         if let data = d {
-            bodyString = String(data: data, encoding: NSUTF8StringEncoding)
+            bodyString = String(data: data as Data, encoding: .utf8)
         }
     }
 }

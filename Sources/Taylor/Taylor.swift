@@ -15,7 +15,7 @@ let sysSleep = Glibc.sleep
 let sysSleep = Darwin.sleep
 #endif
 
-let CurrentSocket: Void -> SocketServer = {
+let CurrentSocket: () -> SocketServer = {
     return SwiftSocketServer()
 }
 
@@ -69,7 +69,7 @@ public class Server {
         socket.disconnect()
     }
     
-    internal func handleRequest(socket: Socket, request: Request, response: Response) {
+    internal func handleRequest(_ socket: Socket, request: Request, response: Response) {
         
         let result = router.handleRequest(request, response: response)
         if result == .Continue {
@@ -86,12 +86,12 @@ public class Server {
         }
         
         let data = response.generateResponse(request.method)
-        socket.sendData(data)
+        socket.sendData(data: data)
         
         router.callAfterHooks(request, response: response)
     }
     
-    public func errorPage(s: HTTPStatus, _ c: Handler) {
+    public func errorPage(s: HTTPStatus, _ c: @escaping Handler) {
         self.errorPages[s] = c
     }
     

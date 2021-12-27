@@ -8,14 +8,14 @@
 
 typealias ReceivedRequestCallback = ((Request, Socket) -> Bool)
 
-enum SocketErrors: ErrorType {
+enum SocketErrors: Swift.Error {
     case ListenError
     case PortUsedError
 }
 
 protocol SocketServer {
 
-    func startOnPort(p: Int) throws
+    func startOnPort(_: Int) throws
     func disconnect()
     
     var receivedRequestCallback: ReceivedRequestCallback? { get set }
@@ -38,9 +38,11 @@ struct SwiftSocket: Socket {
     let socket: ActiveSocketIPv4
     
     func sendData(data: NSData) {
-        
-        socket.write(dispatch_data_create(data.bytes, data.length, dispatch_get_main_queue(), nil))
-        socket.close()
+        (data as Data).withUnsafeBytes { ptr in
+            let data = DispatchData(bytes: ptr)
+            socket.write(data: data)
+            socket.close()
+        }
     }
 }
 
@@ -50,10 +52,10 @@ class SwiftSocketServer: SocketServer {
     
     var receivedRequestCallback: ReceivedRequestCallback?
     
-    func startOnPort(p: Int) throws {
+    func startOnPort(_ p: Int) throws {
         
         guard let socket = PassiveSocketIPv4(address: sockaddr_in(port: p)) else { throw SocketErrors.ListenError }
-        socket.listen(dispatch_get_global_queue(0, 0)) {
+        socket.listen(queue: DispatchQueue.global()) {
             socket in
             
             socket.onRead {
@@ -75,8 +77,8 @@ class SwiftSocketServer: SocketServer {
                     
                     // Initial data may not contain body
                     // Check if request contains a body, and that it hasn't been read yet
-                    if  let lengthString = request.headers["Content-Length"],
-                        let length = UInt(lengthString) where length > 0 && request.bodyString == nil {
+                    if let lengthString = request.headers["Content-Length"],
+                       let length = UInt(lengthString), length > 0 && request.bodyString == nil {
                             
                             let (bSize, bData, _) = newsock.read()
                             

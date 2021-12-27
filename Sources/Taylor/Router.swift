@@ -52,7 +52,7 @@ public class Router: Routable {
         return .Continue
     }
     
-    public func callAfterHooks(request: Request, response: Response) -> Callback {
+    public func callAfterHooks(_ request: Request, response: Response) -> Callback {
         // Call all matching afterHooks
         let after = afterHooks.filter { (routable) -> Bool in
             return routable.matchesRequest(request)
@@ -62,17 +62,17 @@ public class Router: Routable {
     
     
     // Router Methods
-    public func addRoute(route: Routable) -> Bool {
+    public func addRoute(_ route: Routable) -> Bool {
         handlers.append(route)
         return true
     }
     
-    public func addBeforeHook(hook: Routable) -> Bool {
+    public func addBeforeHook(_ hook: Routable) -> Bool {
         beforeHooks.append(hook)
         return true
     }
     
-    public func addAfterHook(hook: Routable) -> Bool {
+    public func addAfterHook(_ hook: Routable) -> Bool {
         afterHooks.append(hook)
         return true
     }

@@ -33,7 +33,7 @@ public class Response {
         if let b = body {
             return b
         } else if bodyString != nil {
-            return NSData(data: bodyString!.dataUsingEncoding(NSUTF8StringEncoding)!)
+            return NSData(data: bodyString!.data(using: .utf8)!)
         }
         
         return NSData()
@@ -47,9 +47,9 @@ public class Response {
     }
     
     
-    public func setFile(url: NSURL?) {
+    public func setFile(_ url: NSURL?) {
         
-        if let u = url, let data = NSData(contentsOfURL: u) {
+        if let u = url, let data = NSData(contentsOf: u as URL) {
             self.body = data
             self.headers["Content-Type"] = FileTypes.get(u.pathExtension ?? "")
         } else {
@@ -57,7 +57,7 @@ public class Response {
         }
     }
     
-    public func setError(errorStatus: HTTPStatus){
+    public func setError(_ errorStatus: HTTPStatus){
         self.status = errorStatus
     }
     
@@ -77,11 +77,10 @@ public class Response {
         
         headersStr += "\r\n"
         let finalStr = String(format: startLine+headersStr)
-        
-        return NSMutableData(data: finalStr.dataUsingEncoding(NSUTF8StringEncoding, allowLossyConversion: false)!)
+        return NSMutableData(data: finalStr.data(using: .utf8, allowLossyConversion: false)!)
     }
     
-    internal func generateResponse(method: HTTPMethod) -> NSData {
+    internal func generateResponse(_ method: HTTPMethod) -> NSData {
         
         let headerData = self.headerData()
         

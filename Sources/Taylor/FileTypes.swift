@@ -8,7 +8,7 @@
 
 public class FileTypes {
     
-    class func get(key: String) -> String {
+    class func get(_ key: String) -> String {
         
         var _dict = [
             "323":"text/h323",

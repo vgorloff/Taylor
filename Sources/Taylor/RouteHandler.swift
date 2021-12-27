@@ -15,7 +15,7 @@ public class RouteHandler: Routable {
     
     var handler: Handler
     
-    public init(handler: Handler) {
+    public init(handler: @escaping Handler) {
         
         self.handler = handler
     }

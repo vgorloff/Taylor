@@ -21,7 +21,7 @@ public class Middleware: Routable {
     }
     
     // This can be removed once wildcard routes are implemented
-    public func matchesRequest(request: Request) -> Bool {
+    public func matchesRequest(_ request: Request) -> Bool {
         return true
     }
     
@@ -52,10 +52,10 @@ extension Middleware {
                                 val = arg[1]
                             }
                             
-                            let key = arg[0].stringByRemovingPercentEncoding!.stringByReplacingOccurrencesOfString("+", withString: " ", options: .LiteralSearch, range: nil)
-                            let value = val.stringByRemovingPercentEncoding!.stringByReplacingOccurrencesOfString("+", withString: " ", options: .LiteralSearch, range: nil)
+                            let key = arg[0].stringByRemovingPercentEncoding!.stringByReplacingOccurrencesOfString("+", withString: " ", options: .literal, range: nil)
+                            let value = val.stringByRemovingPercentEncoding!.stringByReplacingOccurrencesOfString("+", withString: " ", options: .literal, range: nil)
                             
-                            request.body[key] = value.stringByReplacingOccurrencesOfString("\n", withString: "", options: .LiteralSearch, range: nil)
+                            request.body[key] = value.stringByReplacingOccurrencesOfString("\n", withString: "", options: .literal, range: nil)
                         }
                     }
                 }
@@ -65,11 +65,11 @@ extension Middleware {
         }
     }
     
-    public class func staticDirectory(path: String, bundle: NSBundle) -> Handler {
+    public class func staticDirectory(path: String, bundle: Bundle) -> Handler {
         return staticDirectory(path, directory: bundle.resourcePath!)
     }
     
-    public class func staticDirectory(path: String, directory: String) -> Handler {
+    public class func staticDirectory(_ path: String, directory: String) -> Handler {
         let dirComponents = path.taylor_pathComponents
         
         return { request, response in
@@ -80,15 +80,15 @@ extension Middleware {
             }
             
             let fileComponents = requestComponents[dirComponents.count..<requestComponents.count] // matched comps after dirComponents
-            var filePath = directory.NS.stringByExpandingTildeInPath.NS.stringByAppendingPathComponent(fileComponents.joinWithSeparator("/"))
+            var filePath = directory.NS.expandingTildeInPath.NS.appendingPathComponent(fileComponents.joined(separator: "/"))
             
-            let fileManager = NSFileManager.defaultManager()
+            let fileManager = FileManager.default
             var isDir: ObjCBool = false
             
-            if fileManager.fileExistsAtPath(filePath, isDirectory: &isDir){
+            if fileManager.fileExists(atPath: filePath, isDirectory: &isDir){
                 // In case it is a directory, we look for a index.html file inside
-                if Bool(isDir) && fileManager.fileExistsAtPath(filePath.NS.stringByAppendingPathComponent("index.html")) {
-                    filePath = filePath.NS.stringByAppendingPathComponent("index.html")
+                if isDir.boolValue && fileManager.fileExists(atPath: filePath.NS.appendingPathComponent("index.html")) {
+                    filePath = filePath.NS.appendingPathComponent("index.html")
                 }
                 
                 response.setFile(NSURL(fileURLWithPath: filePath))
@@ -104,11 +104,11 @@ extension Middleware {
     }
     
     
-    public class func requestLogger(printer: ((String) -> ())) -> Handler {
+    public class func requestLogger(printer: @escaping ((String) -> ())) -> Handler {
         
         return { request, response in
             
-            let time = String(format: "%.02f", NSDate().timeIntervalSinceDate(request.startTime) * 1000)
+            let time = String(format: "%.02f", NSDate().timeIntervalSince(request.startTime as Date) * 1000)
             let text = "\(response.statusCode) \(request.method.rawValue) \(request.path) \(time)ms"
             
             printer(text)

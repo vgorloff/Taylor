@@ -12,21 +12,21 @@ public protocol Routable {
     var handlers: [Routable] { get }
     var path: Path { get }
     
-    func matchesRequest(request: Request) -> Bool
-    func handleRequest(request: Request, response: Response) -> Callback
-    func executeHandlers(handlers: [Routable], request: Request, response: Response) -> Callback
+    func matchesRequest(_ request: Request) -> Bool
+    func handleRequest(_ request: Request, response: Response) -> Callback
+    func executeHandlers(_ handlers: [Routable], request: Request, response: Response) -> Callback
 }
 
 extension Routable {
-    public func matchesRequest(request: Request) -> Bool {
+    public func matchesRequest(_ request: Request) -> Bool {
         return path.matchesRequest(request)
     }
     
-    public func handleRequest(request: Request, response: Response) -> Callback {
+    public func handleRequest(_ request: Request, response: Response) -> Callback {
         return executeHandlers(handlers, request: request, response: response)
     }
     
-    public func executeHandlers(handlers: [Routable], request: Request, response: Response) -> Callback {
+    public func executeHandlers(_ handlers: [Routable], request: Request, response: Response) -> Callback {
         for routable in handlers {
             // Always check result to see if we should return early
             let result = routable.handleRequest(request, response: response)
@@ -56,7 +56,7 @@ public struct Path {
         
         let comps = path.componentsSeparatedByString("/")
         
-        for (i, component) in comps.enumerate() {
+        for (i, component) in comps.enumerated() {
             
             // We don't care about the first element,
             // which will always be empty since paths should be like this: "/something"
@@ -78,7 +78,7 @@ public struct Path {
             // if first character is ":", then we have a parameter (ex: ":param")
             case ":":
                 // all but first
-                let parameter = component.substringFromIndex(component.startIndex.advancedBy(1))
+                let parameter = String(component[component.index(after: component.startIndex) ..< component.endIndex])
                 self.components.append(.Parameter(parameter))
                 
             case "*":
@@ -90,14 +90,14 @@ public struct Path {
         }
     }
     
-    func matchesRequest(request: Request) -> Bool {
+    func matchesRequest(_ request: Request) -> Bool {
         var parameters = [String : String]()
         
         guard self.components.count == request.pathComponents.count else {
             return false
         }
         
-        for (i, pathComponent) in self.components.enumerate() {
+        for (i, pathComponent) in self.components.enumerated() {
             
             switch pathComponent {
                 
@@ -109,7 +109,7 @@ public struct Path {
             case .Parameter(let parameterString):
                 parameters[parameterString] = request.pathComponents[i]
                 
-            case .Wildcard(_):
+            case .Wildcard:
                 continue;
             }
         }

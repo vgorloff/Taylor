@@ -22,7 +22,7 @@ public class Route: Routable {
         }
     }
     
-    public func matchesRequest(request: Request) -> Bool {
+    public func matchesRequest(_ request: Request) -> Bool {
         
         if self.method == request.method && path.matchesRequest(request) {
             return true
